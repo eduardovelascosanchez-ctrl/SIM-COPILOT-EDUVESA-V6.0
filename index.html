@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07141f">
+  <meta name="description" content="Simulador educativo modular de escenarios PALS y NRP.">
+  <title>SimCopilot EDUVESA · Fase 5</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Ir al inicio">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span><strong>SimCopilot</strong><small>EDUVESA · Fase 5</small></span>
+      </a>
+      <div class="top-actions">
+        <span id="connectionBadge" class="status-chip"><span></span> Local</span>
+        <button id="installBtn" class="button ghost hidden">Instalar</button>
+        <button id="instructorBtn" class="button secondary" aria-haspopup="dialog">Panel instructor</button>
+      </div>
+    </header>
+
+    <main>
+      <section id="homeView" class="view home-view active">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">SIMULACIÓN CLÍNICA · PALS + NRP</p>
+            <h1>Entrena decisiones.<br><span>Observa la respuesta.</span></h1>
+            <p class="hero-copy">Un entorno de simulación clínica modular para practicar liderazgo, intervención y debriefing sin conexión.</p>
+            <div class="hero-actions">
+              <button id="startFlowBtn" class="button primary large">Iniciar simulación <span>→</span></button>
+              <button id="generatorBtn" class="button ghost large">Generar escenario</button>
+            </div>
+          </div>
+          <div class="hero-monitor" aria-hidden="true">
+            <div class="hero-monitor-head"><span>VISTA PREVIA DEL MONITOR</span><i></i></div>
+            <canvas id="heroCanvas" width="640" height="320"></canvas>
+            <div class="hero-vitals">
+              <div><small>FC</small><strong>128</strong><span>lpm</span></div>
+              <div><small>SpO₂</small><strong>94</strong><span>%</span></div>
+              <div><small>TA</small><strong>82/46</strong><span>mmHg</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="feature-strip">
+          <article><span>01</span><div><strong>27 escenarios</strong><small>16 PALS · 11 NRP</small></div></article>
+          <article><span>02</span><div><strong>Monitor dinámico</strong><small>ECG, SpO₂ y capnografía</small></div></article>
+          <article><span>03</span><div><strong>Evaluación local</strong><small>Cronología y debriefing</small></div></article>
+          <article><span>04</span><div><strong>Privacidad total</strong><small>Sin datos clínicos en servidores</small></div></article>
+        </div>
+      </section>
+
+      <section id="setupView" class="view">
+        <div class="section-heading">
+          <div><p class="eyebrow">CONFIGURACIÓN</p><h2>Prepara la sesión</h2></div>
+          <button class="button ghost" data-go-home>← Volver</button>
+        </div>
+        <div class="setup-grid">
+          <form id="setupForm" class="panel setup-form">
+            <div class="field-row">
+              <label>Programa<select id="programSelect"><option value="PALS">PALS</option><option value="NRP">NRP</option></select></label>
+              <label>Dificultad<select id="difficultySelect"><option>Básica</option><option selected>Intermedia</option><option>Avanzada</option></select></label>
+            </div>
+            <label>Escenario<select id="scenarioSelect"></select></label>
+            <div id="scenarioPreview" class="scenario-preview"></div>
+            <div class="field-row">
+              <label>Instructor<input id="instructorName" autocomplete="name" placeholder="Nombre del instructor"></label>
+              <label>Equipo<input id="teamName" placeholder="Equipo Alfa"></label>
+            </div>
+            <label>Peso del paciente (kg)<input id="patientWeight" type="number" min="0.5" max="120" step="0.1"></label>
+            <button class="button primary large full" type="submit">Entrar al escenario <span>→</span></button>
+          </form>
+          <aside class="panel briefing-card">
+            <p class="eyebrow">BRIEFING</p>
+            <h3>Antes de comenzar</h3>
+            <ol>
+              <li><span>1</span><p><strong>Asigna roles</strong><small>Líder, vía aérea, circulación y registro.</small></p></li>
+              <li><span>2</span><p><strong>Verifica el entorno</strong><small>Audio, pantalla y equipo de simulación.</small></p></li>
+              <li><span>3</span><p><strong>Establece el contrato</strong><small>Confidencialidad, respeto y seguridad psicológica.</small></p></li>
+            </ol>
+            <div class="notice">Herramienta educativa. No sustituye protocolos vigentes, juicio clínico ni evaluación por instructores autorizados.</div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="simView" class="view sim-view">
+        <div class="sim-toolbar">
+          <div><p id="simProgram" class="eyebrow">PALS</p><h2 id="simTitle">Escenario</h2></div>
+          <div class="timer-box"><small>TIEMPO</small><strong id="timer">00:00</strong></div>
+          <div class="sim-toolbar-actions">
+            <button id="voiceBtn" class="icon-button" title="Reconocimiento de voz">◉ <span>Voz</span></button>
+            <button id="pauseBtn" class="button ghost">Pausar</button>
+            <button id="finishBtn" class="button danger">Finalizar</button>
+          </div>
+        </div>
+        <div class="sim-grid">
+          <section class="monitor panel">
+            <div class="monitor-head">
+              <div><span class="live-dot"></span><strong id="rhythmLabel">Ritmo sinusal</strong></div>
+              <span id="patientLabel">Paciente</span>
+            </div>
+            <div class="wave-stack">
+              <div class="wave"><label>II</label><canvas id="ecgCanvas"></canvas><strong id="hrValue">120</strong></div>
+              <div class="wave pleth"><label>SpO₂</label><canvas id="plethCanvas"></canvas><strong id="spo2Value">96</strong></div>
+              <div class="wave capno"><label>CO₂</label><canvas id="capnoCanvas"></canvas><strong id="etco2Value">35</strong></div>
+            </div>
+            <div class="vitals-row">
+              <div><small>FC</small><strong id="hrBottom">120</strong><span>lpm</span></div>
+              <div><small>SpO₂</small><strong id="spo2Bottom">96</strong><span>%</span></div>
+              <div><small>TA</small><strong id="bpValue">90/55</strong><span>mmHg</span></div>
+              <div><small>FR</small><strong id="rrValue">24</strong><span>rpm</span></div>
+            </div>
+          </section>
+
+          <aside class="patient-card panel">
+            <p class="eyebrow">PRESENTACIÓN</p>
+            <p id="caseNarrative"></p>
+            <div class="goal-progress"><div><span>Objetivos</span><strong id="goalCount">0/0</strong></div><progress id="goalProgress" value="0" max="100"></progress></div>
+            <div id="goalList" class="goal-list"></div>
+          </aside>
+
+          <section class="interventions panel">
+            <div class="panel-title"><div><p class="eyebrow">ACCIONES</p><h3>Intervenciones</h3></div><span>Selecciona lo realizado</span></div>
+            <div id="interventionGrid" class="intervention-grid"></div>
+            <div class="defib">
+              <div><p class="eyebrow">DESFIBRILADOR</p><strong><span id="joules">2</span> J/kg</strong></div>
+              <input id="energyRange" type="range" min="2" max="10" step="2" value="2" aria-label="Energía en joules por kilogramo">
+              <button id="chargeBtn" class="button secondary">Cargar</button>
+              <button id="shockBtn" class="button danger" disabled>Descarga</button>
+            </div>
+          </section>
+
+          <aside class="event-log panel">
+            <div class="panel-title"><div><p class="eyebrow">CRONOLOGÍA</p><h3>Registro</h3></div><button id="addNoteBtn" class="text-button">+ Nota</button></div>
+            <div id="logList" class="log-list" aria-live="polite"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="resultView" class="view">
+        <div class="result-hero">
+          <p class="eyebrow">SESIÓN FINALIZADA</p>
+          <div id="scoreRing" class="score-ring"><div><strong id="finalScore">0</strong><span>/ 100</span></div></div>
+          <h2 id="resultTitle">Resultado</h2>
+          <p id="resultSummary"></p>
+          <span id="decisionBadge" class="decision-badge">Evaluación automática</span>
+        </div>
+        <div class="result-grid">
+          <section class="panel"><p class="eyebrow">DEBRIEFING PLUS-DELTA</p><h3>Lo que observamos</h3><div id="debriefing"></div></section>
+          <section class="panel"><p class="eyebrow">MÉTRICAS</p><h3>Resumen de desempeño</h3><div id="metricGrid" class="metric-grid"></div></section>
+        </div>
+        <div class="result-actions">
+          <button id="downloadReportBtn" class="button primary">Descargar reporte</button>
+          <button id="printBtn" class="button secondary">Imprimir / PDF</button>
+          <button id="newSessionBtn" class="button ghost">Nueva sesión</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="instructorDialog">
+    <form method="dialog" class="dialog-card" id="instructorForm">
+      <div class="dialog-head"><div><p class="eyebrow">CONTROL PRIVADO</p><h2>Panel instructor</h2></div><button value="cancel" class="close-button" aria-label="Cerrar">×</button></div>
+      <div id="pinGate" class="pin-gate">
+        <p>Introduce el PIN local para acceder. PIN inicial: <strong>2026</strong>.</p>
+        <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="PIN">
+        <button id="unlockBtn" type="button" class="button primary full">Desbloquear</button>
+      </div>
+      <div id="instructorControls" class="hidden">
+        <div class="field-row compact">
+          <label>FC<input id="manualHr" type="number" min="0" max="300"></label>
+          <label>SpO₂<input id="manualSpo2" type="number" min="0" max="100"></label>
+          <label>TA sistólica<input id="manualSys" type="number" min="0" max="240"></label>
+          <label>TA diastólica<input id="manualDia" type="number" min="0" max="160"></label>
+          <label>FR<input id="manualRr" type="number" min="0" max="100"></label>
+          <label>ETCO₂<input id="manualEtco2" type="number" min="0" max="150"></label>
+        </div>
+        <button id="applyVitalsBtn" type="button" class="button secondary full">Aplicar signos vitales</button>
+        <label>Ritmo<select id="rhythmSelect"><option>Sinusal</option><option>Bradicardia</option><option>TSV</option><option>TV</option><option>FV</option><option>AESP</option><option>Asistolia</option></select></label>
+        <div class="button-pair">
+          <button id="toggleDeteriorationBtn" type="button" class="button ghost">Iniciar deterioro</button>
+          <button id="criticalErrorBtn" type="button" class="button danger">Registrar error crítico</button>
+        </div>
+        <label>Decisión final<select id="decisionSelect"><option value="">Automática</option><option>Aprueba</option><option>Remediación</option><option>No aprueba</option></select></label>
+        <button id="instructorFinishBtn" type="button" class="button primary full">Finalizar escenario</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="generatorDialog">
+    <form method="dialog" class="dialog-card wide" id="generatorForm">
+      <div class="dialog-head"><div><p class="eyebrow">CONSTRUCTOR LOCAL</p><h2>Generador de escenarios</h2></div><button value="cancel" class="close-button" aria-label="Cerrar">×</button></div>
+      <div class="field-row">
+        <label>Programa<select id="genProgram"><option>PALS</option><option>NRP</option></select></label>
+        <label>Dificultad<select id="genDifficulty"><option>Básica</option><option>Intermedia</option><option>Avanzada</option></select></label>
+      </div>
+      <label>Problema principal<input id="genProblem" required placeholder="Ej. choque distributivo"></label>
+      <label>Tipo de paciente<input id="genPatient" required placeholder="Ej. escolar de 8 años"></label>
+      <button class="button primary full" type="submit">Crear borrador</button>
+      <div id="generatedScenario" class="generated-scenario hidden"></div>
+    </form>
+  </dialog>
+
+  <dialog id="noteDialog">
+    <form method="dialog" class="dialog-card small" id="noteForm">
+      <div class="dialog-head"><h2>Agregar nota</h2><button value="cancel" class="close-button" aria-label="Cerrar">×</button></div>
+      <textarea id="noteText" rows="4" required placeholder="Observación del equipo…"></textarea>
+      <button class="button primary full" type="submit">Guardar nota</button>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
