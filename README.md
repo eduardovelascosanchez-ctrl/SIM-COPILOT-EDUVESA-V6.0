@@ -1,3 +1,4 @@
+Corregir estructura completa de SimCopilot Fase 5
 # SimCopilot EDUVESA · Fase 5
 
 Aplicación web estática y modular para simulación clínica educativa PALS y NRP.
